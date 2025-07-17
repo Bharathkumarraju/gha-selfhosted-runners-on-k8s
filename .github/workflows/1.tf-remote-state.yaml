@@ -1,8 +1,12 @@
-# --- test
 name: Terraform Plan and Apply
 
 on:
   workflow_dispatch:
+    inputs:
+      env:
+        description: which env
+        default: development
+
 
 env:
   AWS_REGION: "ap-south-1"
