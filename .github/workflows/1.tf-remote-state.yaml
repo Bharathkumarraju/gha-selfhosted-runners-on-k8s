@@ -38,14 +38,14 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
-        working-directory: ./tf-remote-state
+        working-directory: ./1.tf-remote-state
 
       - name: Terraform Plan
         id: plan
         run: |
           terraform plan -no-color > plan_output.txt || true
           cat plan_output.txt
-        working-directory: ./tf-remote-state
+        working-directory: ./1.tf-remote-state
 
       - name: Terraform Plan Summary
         id: plan-summary
@@ -67,14 +67,14 @@ jobs:
           echo "- **Additions:** $ADD" >> $GITHUB_STEP_SUMMARY
           echo "- **Changes:** $CHANGE" >> $GITHUB_STEP_SUMMARY
           echo "- **Deletions:** $DESTROY" >> $GITHUB_STEP_SUMMARY
-        working-directory: ./tf-remote-state
+        working-directory: ./1.tf-remote-state
 
       - name: Terraform Apply
         id: apply
         run: |
           terraform apply -auto-approve -no-color > apply_output.txt
           cat apply_output.txt
-        working-directory: ./tf-remote-state
+        working-directory: ./1.tf-remote-state
 
       - name: Terraform Apply Summary
         run: |
@@ -90,4 +90,5 @@ jobs:
           echo "- **Additions:** $ADD" >> $GITHUB_STEP_SUMMARY
           echo "- **Changes:** $CHANGE" >> $GITHUB_STEP_SUMMARY
           echo "- **Deletions:** $DESTROY" >> $GITHUB_STEP_SUMMARY
-        working-directory: ./tf-remote-state
+        working-directory: ./1.tf-remote-state
+
