@@ -1,1 +1,28 @@
-# --- test
+name: deploy aws eks cluster
+
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: which env
+        default: development
+env:
+  AWS_REGION: "ap-south-1"
+
+jobs:
+  terraform:
+    name: Terraform Workflow
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform CLI
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: latest
