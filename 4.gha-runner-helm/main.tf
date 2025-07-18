@@ -68,6 +68,35 @@ resource "helm_release" "arc_runners" {
     yamlencode({
       githubConfigUrl    = "https://github.com/1dot618labs"
       githubConfigSecret = kubernetes_secret_v1.github_runner_config.metadata[0].name
+      containerMode = {
+        type = "dind"
+      }
+      template = {
+        spec = {
+          # The 'privileged: true' is essential for DinD to function.
+          securityContext = {
+            privileged = true
+          }
+          # Ensure the runner container knows about the Docker host
+          containers = [
+            {
+              name  = "runner"
+              image = "ghcr.io/actions/actions-runner:latest" # Or specific runner image if customized
+              env = [
+                {
+                  name  = "DOCKER_HOST"
+                  value = "unix:///var/run/docker.sock"
+                },
+                {
+                  name  = "RUNNER_WAIT_FOR_DOCKER_IN_SECONDS"
+                  value = "120" # Adjust this timeout if needed for daemon startup
+                }
+              ]
+            }
+          ]
+          # The chart automatically injects the dind init container, dind sidecar,
+        }
+      }
     })
   ]
 
