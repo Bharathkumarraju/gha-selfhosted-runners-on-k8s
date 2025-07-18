@@ -24,3 +24,6 @@ data "terraform_remote_state" "aws-eks" {
   }
 }
 
+data "aws_ssm_parameter" "github_privatekey" {
+  name = "/dev/github_app_privatekey"
+}
