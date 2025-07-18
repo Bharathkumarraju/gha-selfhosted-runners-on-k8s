@@ -2,14 +2,14 @@ data "aws_eks_cluster_auth" "cluster_auth" {
   name = local.eks_cluster_name
 }
 
-provider "helm" {
-  kubernetes {
-    host                   = local.eks_cluster_endpoint
-    cluster_ca_certificate = base64decode(local.eks_cluster_ca_certificate)
-    token                  = data.aws_eks_cluster_auth.cluster_auth.token
-  }
+# provider "helm" {
+#   kubernetes {
+#     host                   = local.eks_cluster_endpoint
+#     cluster_ca_certificate = base64decode(local.eks_cluster_ca_certificate)
+#     token                  = data.aws_eks_cluster_auth.cluster_auth.token
+#   }
 
-}
+# }
 
 provider "kubernetes" {
   host                   = local.eks_cluster_endpoint
@@ -41,7 +41,7 @@ resource "kubernetes_secret_v1" "github_runner_config" {
 # arc = actions runner controller
 resource "helm_release" "arc_systems" {
   name       = "arc-systems"
-  namespace  = kubernetes_namespace_v1.arc.metadata[0].name
+  namespace  = kubernetes_namespace_v1.actions.metadata[0].name
   chart      = "gha-runner-scale-set-controller"
   repository = "oci://ghcr.io/actions/actions-runner-controller-charts"
   version    = "0.12.1"
@@ -49,7 +49,7 @@ resource "helm_release" "arc_systems" {
 
 resource "helm_release" "arc_runners" {
   name       = "gha-runner"
-  namespace  = kubernetes_namespace_v1.arc.metadata[0].name
+  namespace  = kubernetes_namespace_v1.actions.metadata[0].name
   chart      = "gha-runner-scale-set"
   repository = "oci://ghcr.io/actions/actions-runner-controller-charts"
   version    = "0.12.1"
