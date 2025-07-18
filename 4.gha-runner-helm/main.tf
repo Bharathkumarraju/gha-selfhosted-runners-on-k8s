@@ -1,6 +1,3 @@
-data "aws_eks_cluster_auth" "cluster_auth" {
-  name = local.eks_cluster_name
-}
 
 provider "aws" {
   region = local.region
@@ -18,9 +15,9 @@ provider "kubernetes" {
   }
 }
 
-provider "helm" {
+provider "helm" { 
   kubernetes = {
-    host                   = local.eks_cluster_ca_certificate
+    host                   = local.eks_cluster_endpoint
     cluster_ca_certificate = base64decode(local.eks_cluster_ca_certificate)
 
     exec = {
@@ -30,7 +27,6 @@ provider "helm" {
     }
   }
 }
-
 
 resource "kubernetes_namespace_v1" "actions" {
   metadata {

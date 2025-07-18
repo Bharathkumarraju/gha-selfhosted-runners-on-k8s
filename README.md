@@ -716,3 +716,130 @@ get below details
 
 ```
 
+## Install actions runner controller helm charts
+```shell
+(external) bharathkumardasaraju@4.gha-runner-helm$ terraform apply --auto-approve
+data.terraform_remote_state.aws-eks: Reading...
+data.terraform_remote_state.aws-vpc: Reading...
+data.aws_ssm_parameter.github_privatekey: Reading...
+data.aws_region.current: Reading...
+data.aws_availability_zones.available: Reading...
+data.aws_caller_identity.current: Reading...
+data.aws_region.current: Read complete after 0s [id=ap-south-1]
+data.aws_caller_identity.current: Read complete after 0s [id=172586632398]
+data.aws_ssm_parameter.github_privatekey: Read complete after 0s [id=/dev/github_app_privatekey]
+data.aws_availability_zones.available: Read complete after 0s [id=ap-south-1]
+data.terraform_remote_state.aws-vpc: Read complete after 1s
+data.terraform_remote_state.aws-eks: Read complete after 1s
+kubernetes_namespace_v1.actions: Refreshing state... [id=actions]
+kubernetes_secret_v1.github_runner_config: Refreshing state... [id=actions/github-config]
+
+Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+  + create
+
+Terraform will perform the following actions:
+
+  # helm_release.arc_runners will be created
+  + resource "helm_release" "arc_runners" {
+      + atomic                     = false
+      + chart                      = "gha-runner-scale-set"
+      + cleanup_on_fail            = false
+      + create_namespace           = false
+      + dependency_update          = false
+      + disable_crd_hooks          = false
+      + disable_openapi_validation = false
+      + disable_webhooks           = false
+      + force_update               = false
+      + id                         = (known after apply)
+      + lint                       = false
+      + max_history                = 0
+      + metadata                   = (known after apply)
+      + name                       = "gha-runner"
+      + namespace                  = "actions"
+      + pass_credentials           = false
+      + recreate_pods              = false
+      + render_subchart_notes      = true
+      + replace                    = false
+      + repository                 = "oci://ghcr.io/actions/actions-runner-controller-charts"
+      + reset_values               = false
+      + reuse_values               = false
+      + set_wo                     = (write-only attribute)
+      + skip_crds                  = false
+      + status                     = "deployed"
+      + timeout                    = 300
+      + values                     = [
+          + <<-EOT
+                "githubConfigSecret": "github-config"
+                "githubConfigUrl": "https://github.com/1dot618labs"
+            EOT,
+        ]
+      + verify                     = false
+      + version                    = "0.12.1"
+      + wait                       = true
+      + wait_for_jobs              = false
+    }
+
+  # helm_release.arc_systems will be created
+  + resource "helm_release" "arc_systems" {
+      + atomic                     = false
+      + chart                      = "gha-runner-scale-set-controller"
+      + cleanup_on_fail            = false
+      + create_namespace           = false
+      + dependency_update          = false
+      + disable_crd_hooks          = false
+      + disable_openapi_validation = false
+      + disable_webhooks           = false
+      + force_update               = false
+      + id                         = (known after apply)
+      + lint                       = false
+      + max_history                = 0
+      + metadata                   = (known after apply)
+      + name                       = "arc-systems"
+      + namespace                  = "actions"
+      + pass_credentials           = false
+      + recreate_pods              = false
+      + render_subchart_notes      = true
+      + replace                    = false
+      + repository                 = "oci://ghcr.io/actions/actions-runner-controller-charts"
+      + reset_values               = false
+      + reuse_values               = false
+      + set_wo                     = (write-only attribute)
+      + skip_crds                  = false
+      + status                     = "deployed"
+      + timeout                    = 300
+      + verify                     = false
+      + version                    = "0.12.1"
+      + wait                       = true
+      + wait_for_jobs              = false
+    }
+
+Plan: 2 to add, 0 to change, 0 to destroy.
+helm_release.arc_systems: Creating...
+helm_release.arc_systems: Still creating... [00m10s elapsed]
+helm_release.arc_systems: Creation complete after 19s [id=arc-systems]
+helm_release.arc_runners: Creating...
+helm_release.arc_runners: Creation complete after 5s [id=gha-runner]
+
+Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
+(external) bharathkumardasaraju@4.gha-runner-helm$ 
+```
+
+```shell
+(external) bharathkumardasaraju@4.gha-runner-helm$ pwd
+/Users/bharathkumardasaraju/external/gha-selfhosted-runners-on-k8s/4.gha-runner-helm
+(external) bharathkumardasaraju@4.gha-runner-helm$ helm list -n actions
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                                   APP VERSION
+arc-systems     actions         1               2025-07-18 14:36:27.119579 +0800 +08    deployed        gha-runner-scale-set-controller-0.12.1  0.12.1     
+gha-runner      actions         1               2025-07-18 14:36:43.276959 +0800 +08    deployed        gha-runner-scale-set-0.12.1             0.12.1     
+(external) bharathkumardasaraju@4.gha-runner-helm$ kubectl get all -n actions
+NAME                                                 READY   STATUS    RESTARTS   AGE
+pod/arc-systems-gha-rs-controller-6d46c5dc94-7gpzj   1/1     Running   0          33m
+pod/gha-runner-748d99b5-listener                     1/1     Running   0          33m
+
+NAME                                            READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/arc-systems-gha-rs-controller   1/1     1            1           33m
+
+NAME                                                       DESIRED   CURRENT   READY   AGE
+replicaset.apps/arc-systems-gha-rs-controller-6d46c5dc94   1         1         1       33m
+(external) bharathkumardasaraju@4.gha-runner-helm$ 
+```
