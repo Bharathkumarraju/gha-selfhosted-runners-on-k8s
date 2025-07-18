@@ -28,7 +28,7 @@ resource "kubernetes_namespace_v1" "actions" {
 resource "kubernetes_secret_v1" "github_runner_config" {
   metadata {
     name      = "github-config"
-    namespace = kubernetes_namespace_v1.arc.metadata[0].name
+    namespace = kubernetes_namespace_v1.actions.metadata[0].name
   }
 
   data = {
