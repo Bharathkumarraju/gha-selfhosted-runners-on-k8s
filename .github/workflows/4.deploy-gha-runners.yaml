@@ -26,3 +26,66 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: latest
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./4.gha-runner-helm
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan -no-color > plan_output.txt || true
+          cat plan_output.txt
+        working-directory: ./4.gha-runner-helm
+
+      - name: Terraform Plan Summary
+        id: plan-summary
+        run: |
+          ADD=$(grep -oE '[0-9]+ to add' plan_output.txt | grep -oE '[0-9]+' || echo '0')
+          CHANGE=$(grep -oE '[0-9]+ to change' plan_output.txt | grep -oE '[0-9]+' || echo '0')
+          DESTROY=$(grep -oE '[0-9]+ to destroy' plan_output.txt | grep -oE '[0-9]+' || echo '0')
+
+          echo "Terraform Plan Summary:"
+          echo "Additions: $ADD, Changes: $CHANGE, Deletions: $DESTROY"
+
+          # Set environment variables for PR comment
+          echo "add=$ADD" >> $GITHUB_ENV
+          echo "change=$CHANGE" >> $GITHUB_ENV
+          echo "destroy=$DESTROY" >> $GITHUB_ENV
+
+          # Update GitHub step summary
+          echo "### Terraform Plan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Additions:** $ADD" >> $GITHUB_STEP_SUMMARY
+          echo "- **Changes:** $CHANGE" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deletions:** $DESTROY" >> $GITHUB_STEP_SUMMARY
+        working-directory: ./4.gha-runner-helm
+
+      - name: Terraform Apply
+        id: apply
+        run: |
+          terraform apply -auto-approve -no-color > apply_output.txt
+          cat apply_output.txt
+        working-directory: ./4.gha-runner-helm
+
+      - name: Terraform Apply Summary
+        run: |
+          ADD=$(grep -oE '[0-9]+ added' apply_output.txt | grep -oE '[0-9]+' || echo '0')
+          CHANGE=$(grep -oE '[0-9]+ changed' apply_output.txt | grep -oE '[0-9]+' || echo '0')
+          DESTROY=$(grep -oE '[0-9]+ destroyed' apply_output.txt | grep -oE '[0-9]+' || echo '0')
+
+          echo "Terraform Apply Summary:"
+          echo "Additions: $ADD, Changes: $CHANGE, Deletions: $DESTROY"
+
+          # Update GitHub step summary
+          echo "### Terraform Apply Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Additions:** $ADD" >> $GITHUB_STEP_SUMMARY
+          echo "- **Changes:** $CHANGE" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deletions:** $DESTROY" >> $GITHUB_STEP_SUMMARY
+        working-directory: ./4.gha-runner-helm
